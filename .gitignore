@@ -1,0 +1,25 @@
+# CMake build directory
+build/
+cmake-build-debug/
+cmake-build-release/
+
+# Output and logs
+*.txt
+*.log
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.obj
+*.o
+
+# IDEs
+.vscode/
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.user
