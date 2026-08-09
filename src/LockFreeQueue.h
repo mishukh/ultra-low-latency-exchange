@@ -22,8 +22,8 @@ public:
         , head_(0)
         , tail_(0) 
     {
-        if (capacity < 2) {
-            throw std::invalid_argument("Capacity must be at least 2");
+        if (capacity < 2 || (capacity & (capacity - 1)) != 0) {
+            throw std::invalid_argument("Capacity must be a power of 2 and at least 2");
         }
     }
 
@@ -61,7 +61,7 @@ public:
 
 private:
     std::size_t increment(std::size_t idx) const {
-        return (idx + 1) % capacity_;
+        return (idx + 1) & (capacity_ - 1);
     }
 
     std::size_t capacity_;
