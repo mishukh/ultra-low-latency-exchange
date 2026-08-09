@@ -1,6 +1,12 @@
 #include "Exchange.h"
 #include <iostream>
+#if defined(__linux__)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <pthread.h>
+#include <sched.h>
+#endif
 #include <vector>
 #include <chrono>
 #include <random>
@@ -50,6 +56,7 @@ int main() {
     std::atomic<uint64_t> producerBlockedCount{0};
     
     std::thread consumer([&]() {
+#if defined(__linux__)
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
         CPU_SET(2, &cpuset); // Pin consumer thread to core 2
@@ -57,6 +64,7 @@ int main() {
         if (rc != 0) {
             std::cerr << "Warning: Failed to set thread affinity for consumer thread to core 2\n";
         }
+#endif
         
         auto& mdQueue = exchange.getMarketDataQueue();
         MarketDataEvent event;
@@ -78,6 +86,7 @@ int main() {
     });
 
     // Pin producer (main thread) to core 0
+#if defined(__linux__)
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(0, &cpuset);
@@ -85,6 +94,7 @@ int main() {
     if (rc != 0) {
         std::cerr << "Warning: Failed to set thread affinity for producer thread to core 0\n";
     }
+#endif
 
     for (int i = 0; i < NUM_ORDERS; ++i) {
         orders[i].sentTime = nowNs();

@@ -1,7 +1,12 @@
 #include "Exchange.h"
 #include <iostream>
+#if defined(__linux__)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <pthread.h>
-#include <iostream>
+#include <sched.h>
+#endif
 
 namespace exchange {
 
@@ -37,6 +42,7 @@ bool Exchange::sendOrder(const OrderRequest& request) {
 }
 
 void Exchange::engineThreadLoop() {
+#if defined(__linux__)
     if (engineCore_ >= 0) {
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
@@ -48,6 +54,7 @@ void Exchange::engineThreadLoop() {
         // Note: WSL2 doesn't support isolcpus, so this pinning reduces
         // but doesn't eliminate scheduler contention with the Windows host.
     }
+#endif
 
     OrderRequest req;
     while (running_) {
