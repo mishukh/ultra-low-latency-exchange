@@ -129,10 +129,10 @@ int main() {
     if (receivedCount > 0) {
         std::sort(latencies.begin(), latencies.end());
         std::cout << "Throughput:       " << static_cast<int>(receivedCount / totalSeconds) << " orders/sec\n";
-        std::cout << "P50 Latency:      " << latencies[receivedCount * 0.50] / 1000.0 << " us\n";
-        std::cout << "P90 Latency:      " << latencies[receivedCount * 0.90] / 1000.0 << " us\n";
-        std::cout << "P95 Latency:      " << latencies[receivedCount * 0.95] / 1000.0 << " us\n";
-        std::cout << "P99 Latency:      " << latencies[receivedCount * 0.99] / 1000.0 << " us\n";
+        std::cout << "P50 Latency:      " << latencies[static_cast<size_t>(receivedCount * 0.50)] / 1000.0 << " us\n";
+        std::cout << "P90 Latency:      " << latencies[static_cast<size_t>(receivedCount * 0.90)] / 1000.0 << " us\n";
+        std::cout << "P95 Latency:      " << latencies[static_cast<size_t>(receivedCount * 0.95)] / 1000.0 << " us\n";
+        std::cout << "P99 Latency:      " << latencies[static_cast<size_t>(receivedCount * 0.99)] / 1000.0 << " us\n";
         std::cout << "Max Latency:      " << latencies.back() / 1000.0 << " us\n";
     }
     std::cout << "=================================================\n";
@@ -154,7 +154,6 @@ int main() {
         std::cout << "Order-to-Trade Ratio: " << static_cast<double>(stats.totalOrdersReceived) / (stats.totalTradesMatched == 0 ? 1 : stats.totalTradesMatched) << ":1\n";
     }
     std::cout << "=============================================\n";
-
 
     return 0;
 }

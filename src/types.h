@@ -1,7 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <limits>
-#include <string>
 
 namespace exchange {
 
@@ -20,12 +18,8 @@ enum class OrderType : uint8_t {
     MARKET = 1,
     IOC = 2,
     FOK = 3,
-    STOP = 4,
-    ICEBERG = 5
+    ICEBERG = 4
 };
-
-constexpr Price MAX_PRICE = std::numeric_limits<Price>::max();
-constexpr Price MIN_PRICE = 0;
 
 struct OrderRequest {
     OrderId id;
@@ -38,7 +32,6 @@ struct OrderRequest {
 };
 
 enum class MarketDataType : uint8_t {
-    TRADE,
     BBO_UPDATE,
     ORDER_REJECT
 };

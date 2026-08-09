@@ -86,14 +86,11 @@ bool OrderBook::addOrder(OrderId id, Price price, Quantity quantity, Side side, 
             order->visibleQuantity = order->quantity;
         }
         
-        orderMap_[id] = order;
         if (side == Side::BUY) {
             bids_[price].addOrder(order);
-            bids_[price].price = price;
             if (price > bestBid_) bestBid_ = price;
         } else {
             asks_[price].addOrder(order);
-            asks_[price].price = price;
             if (price < bestAsk_) bestAsk_ = price;
         }
     } else if (order->quantity == 0 || type == OrderType::IOC || type == OrderType::FOK || type == OrderType::MARKET) {
@@ -236,14 +233,11 @@ Quantity OrderBook::getBestAskVolume() const {
 }
 
 Price OrderBook::getBestBid() const {
-    return bestBid_ == 0 ? 0 : bestBid_;
+    return bestBid_;
 }
 
 Price OrderBook::getBestAsk() const {
     return bestAsk_ == MAX_PRICE_LEVELS ? 0 : bestAsk_;
-}
-
-void OrderBook::printHeatmap() const {
 }
 
 }

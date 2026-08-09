@@ -2,7 +2,6 @@
 #include "RiskEngine.h"
 #include "LockFreeQueue.h"
 #include <thread>
-#include <vector>
 
 using namespace exchange;
 
@@ -31,7 +30,7 @@ TEST(RiskEngineTest, FatFingerValue) {
 }
 
 TEST(LockFreeQueueTest, BasicPushPop) {
-    SPSCQueue<int> queue(10);
+    SPSCQueue<int> queue(16);
     
     EXPECT_TRUE(queue.push(1));
     EXPECT_TRUE(queue.push(2));
@@ -47,11 +46,12 @@ TEST(LockFreeQueueTest, BasicPushPop) {
 }
 
 TEST(LockFreeQueueTest, CapacityLimit) {
-    SPSCQueue<int> queue(3); // Capacity 3 means it can hold 2 items (ring buffer waste 1 slot)
+    SPSCQueue<int> queue(4); // Capacity 4 means it can hold 3 items
     
     EXPECT_TRUE(queue.push(1));
     EXPECT_TRUE(queue.push(2));
-    EXPECT_FALSE(queue.push(3)); // Full
+    EXPECT_TRUE(queue.push(3));
+    EXPECT_FALSE(queue.push(4)); // Full
 }
 
 TEST(LockFreeQueueTest, MultiThreadedProducerConsumer) {

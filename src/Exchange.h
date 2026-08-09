@@ -23,8 +23,6 @@ public:
     const OrderBook::Statistics& getStatistics() const { return orderBook_.getStatistics(); }
     uint64_t getBackpressureBlockedCount() const { return backpressureBlockedCount_; }
 
-    void printHeatmap() const { orderBook_.printHeatmap(); }
-
 private:
     void engineThreadLoop();
 

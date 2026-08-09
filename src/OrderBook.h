@@ -1,23 +1,12 @@
 #pragma once
 #include "Order.h"
 #include "MemoryPool.h"
-#include <unordered_map>
-#include <map>
-#include <iostream>
 #include <vector>
 #include <array>
 
 namespace exchange {
 
-struct Trade {
-    OrderId makerOrderId;
-    OrderId takerOrderId;
-    Price price;
-    Quantity quantity;
-};
-
 struct PriceLevel {
-    Price price = 0;
     Order* head = nullptr;
     Order* tail = nullptr;
     Quantity totalVolume = 0;
@@ -62,8 +51,6 @@ public:
 
     Price getBestBid() const;
     Price getBestAsk() const;
-
-    void printHeatmap() const;
 
     struct Statistics {
         uint64_t totalOrdersReceived = 0;

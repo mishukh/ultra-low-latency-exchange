@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include <memory>
+#include <utility>
 #include <cassert>
 
 namespace exchange {
@@ -37,10 +37,6 @@ public:
         size_t index = ptr - pool_.data();
         assert(index < pool_.size());
         freeIndices_.push_back(index);
-    }
-
-    size_t available() const {
-        return freeIndices_.size();
     }
 
 private:

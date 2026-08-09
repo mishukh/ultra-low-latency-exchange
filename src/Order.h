@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <algorithm>
 
 namespace exchange {
 
@@ -24,7 +25,7 @@ struct Order {
         price = p;
         quantity = q;
         if (t == OrderType::ICEBERG) {
-            peakSize = std::min(q, (Quantity)100); 
+            peakSize = std::min(q, static_cast<Quantity>(100)); 
             visibleQuantity = peakSize;
             hiddenQuantity = q - peakSize;
         } else {
