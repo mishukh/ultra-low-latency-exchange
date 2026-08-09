@@ -127,6 +127,7 @@ Three targeted optimizations were applied to the existing architecture without a
 
 > [!NOTE]
 > Throughput is slightly lower in the "After" runs because the benchmark was executed under WSL2 with `taskset` pinning, whereas the "Before" runs were native Windows. The critical improvement is in **tail latency stability at scale**: the 20M P99 improved 3.4x (2,118 → 628 µs) and the 20M Max improved 11.6x (20,839 → 1,788 µs), confirming that thread migration and cache thrashing were the dominant sources of jitter.
+> Note: the 10M P99 baseline (135.3µs) was a single best-case run; repeated testing showed 10M P99 varies 380–1339µs run-to-run in WSL2 due to host scheduler contention, independent of these optimizations. The 20M results are more representative since that scale is less sensitive to single-run variance
 
 ## How to Run
 
