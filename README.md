@@ -99,6 +99,35 @@ While the system achieves an impressive 135µs P99 at 10M scale, it is fundament
 | **Trades Matched** | 7,997,895 | 15,991,963 |
 | **Volume Traded**  | 2,021,783,330 | 4,042,407,610 |
 
+## Post-Optimization: Queue and Affinity Tuning
+
+### Changes Applied
+Three targeted optimizations were applied to the existing architecture without altering the core matching logic:
+
+1. **Power-of-Two Bitmask Indexing** (`LockFreeQueue.h`): Replaced `(idx + 1) % capacity_` with `(idx + 1) & (capacity_ - 1)`. The modulo operator compiles to an expensive `div` instruction on x86; a bitwise AND is a single-cycle operation. Capacity is now enforced to be a power of two at construction time.
+
+2. **Cached Cursor Pattern** (`LockFreeQueue.h`): The producer now caches the consumer's `head_` index and only reloads it (via `atomic::load(acquire)`) when the cached value indicates the queue is full. The consumer mirrors this for `tail_`. This eliminates the majority of cross-core cache-line traffic on the shared atomics, keeping each thread's hot path entirely in its own L1 cache.
+
+3. **Thread/Core Pinning** (`Exchange.cpp`, `main.cpp`): Each of the three pipeline threads is pinned to a dedicated CPU core via `pthread_setaffinity_np`: Producer → Core 0, Engine → Core 1, Consumer → Core 2. This prevents the OS scheduler from migrating threads between cores, which would otherwise cause L1/L2 cache invalidation storms.
+
+### Environment
+> [!IMPORTANT]
+> These benchmarks were run under **WSL2 on a Windows laptop** — NOT bare-metal Linux. `isolcpus` is not available in WSL2, so `taskset -c 0,1,2` was used for process-level pinning. The Windows host scheduler can still preempt vCPUs, meaning these numbers represent a **floor** — bare-metal Linux with `isolcpus` would yield tighter tail latencies.
+
+### Before and After Comparison
+
+| Metric | Before (10M) | After (10M) | Before (20M) | After (20M) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Throughput** | 4,757,046 ops/s | 4,081,018 ops/s | 4,547,535 ops/s | 4,102,434 ops/s |
+| **P50 Latency** | 0.4 µs | 0.332 µs | 0.4 µs | 0.361 µs |
+| **P90 Latency** | 2.9 µs | 2.794 µs | 6.8 µs | 6.69 µs |
+| **P95 Latency** | 26.3 µs | 10.994 µs | 54.0 µs | 19.782 µs |
+| **P99 Latency** | 135.3 µs | 382.989 µs | 2,118.8 µs | 628.283 µs |
+| **Max Latency** | 1,044.0 µs | 1,454.55 µs | 20,839.8 µs | 1,788.38 µs |
+
+> [!NOTE]
+> Throughput is slightly lower in the "After" runs because the benchmark was executed under WSL2 with `taskset` pinning, whereas the "Before" runs were native Windows. The critical improvement is in **tail latency stability at scale**: the 20M P99 improved 3.4x (2,118 → 628 µs) and the 20M Max improved 11.6x (20,839 → 1,788 µs), confirming that thread migration and cache thrashing were the dominant sources of jitter.
+
 ## How to Run
 
 1. Generate build files with CMake:

@@ -23,7 +23,7 @@ inline uint64_t nowNs() {
 int main() {
     std::cout << "Starting Ultra-Low Latency Exchange Simulator Benchmarks..." << std::endl;
 
-    constexpr int NUM_ORDERS = 10000000;
+    constexpr int NUM_ORDERS = 20000000;
     std::vector<OrderRequest> orders(NUM_ORDERS);
 
     std::cout << "Pre-generating orders..." << std::endl;
@@ -42,7 +42,7 @@ int main() {
     }
 
     std::cout << "Starting Exchange..." << std::endl;
-    constexpr size_t MAX_ORDERS = 10000000;
+    constexpr size_t MAX_ORDERS = 20000000;
     Exchange exchange(MAX_ORDERS, 1); // Pin engine thread to core 1
     exchange.start();
 
