@@ -1,12 +1,15 @@
 #include "Exchange.h"
 #include <iostream>
+#include <pthread.h>
+#include <iostream>
 
 namespace exchange {
 
-Exchange::Exchange(size_t maxOrders)
+Exchange::Exchange(size_t maxOrders, int engineCore)
     : gatewayToEngineQueue_(1024 * 1024),
       matchingToMarketDataQueue_(1024 * 1024),
-      orderBook_(1, maxOrders)
+      orderBook_(1, maxOrders),
+      engineCore_(engineCore)
 {
 }
 
@@ -34,6 +37,18 @@ bool Exchange::sendOrder(const OrderRequest& request) {
 }
 
 void Exchange::engineThreadLoop() {
+    if (engineCore_ >= 0) {
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(engineCore_, &cpuset);
+        int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+        if (rc != 0) {
+            std::cerr << "Warning: Failed to set thread affinity for engine thread to core " << engineCore_ << "\n";
+        }
+        // Note: WSL2 doesn't support isolcpus, so this pinning reduces
+        // but doesn't eliminate scheduler contention with the Windows host.
+    }
+
     OrderRequest req;
     while (running_) {
         if (gatewayToEngineQueue_.pop(req)) {

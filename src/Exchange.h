@@ -10,7 +10,7 @@ namespace exchange {
 
 class Exchange {
 public:
-    explicit Exchange(size_t maxOrders = 15000000);
+    explicit Exchange(size_t maxOrders = 15000000, int engineCore = -1);
     ~Exchange();
 
     void start();
@@ -38,6 +38,7 @@ private:
     OrderBook orderBook_;
 
     std::thread engineThread_;
+    int engineCore_;
 };
 
 }

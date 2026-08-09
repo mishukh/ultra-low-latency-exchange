@@ -1,5 +1,6 @@
 #include "Exchange.h"
 #include <iostream>
+#include <pthread.h>
 #include <vector>
 #include <chrono>
 #include <random>
@@ -36,7 +37,7 @@ int main() {
 
     std::cout << "Starting Exchange..." << std::endl;
     constexpr size_t MAX_ORDERS = 10000000;
-    Exchange exchange(MAX_ORDERS);
+    Exchange exchange(MAX_ORDERS, 1); // Pin engine thread to core 1
     exchange.start();
 
     std::vector<uint64_t> latencies;
@@ -49,6 +50,14 @@ int main() {
     std::atomic<uint64_t> producerBlockedCount{0};
     
     std::thread consumer([&]() {
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(2, &cpuset); // Pin consumer thread to core 2
+        int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+        if (rc != 0) {
+            std::cerr << "Warning: Failed to set thread affinity for consumer thread to core 2\n";
+        }
+        
         auto& mdQueue = exchange.getMarketDataQueue();
         MarketDataEvent event;
         auto consumerStart = std::chrono::high_resolution_clock::now();
@@ -67,6 +76,15 @@ int main() {
             }
         }
     });
+
+    // Pin producer (main thread) to core 0
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(0, &cpuset);
+    int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "Warning: Failed to set thread affinity for producer thread to core 0\n";
+    }
 
     for (int i = 0; i < NUM_ORDERS; ++i) {
         orders[i].sentTime = nowNs();
